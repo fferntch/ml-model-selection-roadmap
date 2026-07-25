@@ -16,34 +16,7 @@
 | 06 | Train/Test Split เทียบกับ Cross-Validation |
 | 07 | ประเมินผลและรู้ว่าเมื่อไหร่ควรลองโมเดลตัวถัดไป |
 
-อ้างอิงจาก [scikit-learn 1.9.0 User Guide](https://scikit-learn.org/stable/user_guide.html) และเอกสารประกอบที่เกี่ยวข้อง
-
-## วิธีเปิดดู
-
-**แบบเร็วที่สุด** — ดับเบิลคลิกไฟล์ `ml-model-selection-roadmap.html` เปิดด้วยเบราว์เซอร์ได้เลย ไม่ต้องมีเซิร์ฟเวอร์หรือติดตั้งอะไรเพิ่ม
-
-## วิธีแชร์เป็นเว็บไซต์
-
-### วิธีที่ 1 — Netlify Drop (ง่ายสุด ไม่ต้องสมัคร)
-1. เข้า https://app.netlify.com/drop
-2. ลาก-วางไฟล์ HTML ลงไป (แนะนำเปลี่ยนชื่อเป็น `index.html` ก่อน)
-3. ได้ลิงก์ทันที เช่น `random-name.netlify.app`
-
-### วิธีที่ 2 — GitHub Pages
-1. สร้าง repo ใหม่บน GitHub แล้วอัปโหลดไฟล์ (ตั้งชื่อเป็น `index.html`)
-2. ไปที่ **Settings → Pages** เลือก branch `main` และโฟลเดอร์ `/root`
-3. รอสักครู่ จะได้ลิงก์ `https://<username>.github.io/<repo>/`
-
-### วิธีที่ 3 — Vercel
-ลาก-วางไฟล์หรือเชื่อมกับ GitHub repo ได้เช่นกัน ได้ลิงก์แบบ `.vercel.app`
-
-## โครงสร้างไฟล์
-
-```
-.
-├── ml-model-selection-roadmap.html   # ไฟล์เว็บไซต์หลัก (self-contained)
-└── README.md                          # ไฟล์นี้
-```
+อ้างอิงเนื้อหาบางส่วนจาก [scikit-learn 1.9.0 User Guide](https://scikit-learn.org/stable/user_guide.html) และเอกสารประกอบที่เกี่ยวข้อง
 
 ## หมายเหตุ
 
