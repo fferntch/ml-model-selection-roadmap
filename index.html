@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สรุปบทเรียน — เลือกและประเมินโมเดล ML แบบละเอียด</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg: #101917;
+    --bg-2: #17221F;
+    --surface: #1C2926;
+    --surface-2: #223531;
+    --line: #2E3E39;
+    --text: #E9E6DC;
+    --text-dim: #9FAFA8;
+    --text-faint: #6B7A74;
+    --amber: #E4A538;
+    --amber-dim: #8A6A2A;
+    --sage: #7FB89A;
+    --coral: #D97C5F;
+    --mono: 'IBM Plex Mono', monospace;
+    --serif: 'IBM Plex Serif', 'Noto Sans Thai', serif;
+    --sans: 'IBM Plex Sans', 'Noto Sans Thai', sans-serif;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  html{ scroll-behavior: smooth; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.75;
+    font-size: 16px;
+    padding-bottom: 80px;
+  }
+  ::selection{ background: var(--amber-dim); color: var(--text); }
+
+  header{
+    border-bottom: 1px solid var(--line);
+    padding: 64px 24px 40px;
+    background: linear-gradient(180deg, var(--bg-2), var(--bg));
+    position: relative; overflow:hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(90deg, transparent, transparent 79px, var(--line) 80px);
+    opacity:0.25; pointer-events:none;
+  }
+  .header-inner{ max-width: 760px; margin: 0 auto; position:relative; }
+  .kicker{
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--sage);
+    display:flex; align-items:center; gap:10px; margin-bottom: 18px;
+  }
+  .kicker::before{ content:""; width:18px; height:1px; background: var(--sage); display:inline-block; }
+  h1{
+    font-family: var(--serif); font-weight: 700;
+    font-size: clamp(28px, 5vw, 42px); line-height: 1.25;
+    color: var(--text); max-width: 16ch;
+  }
+  .subtitle{ margin-top: 16px; color: var(--text-dim); font-size: 16px; max-width: 56ch; }
+  .meta-row{
+    margin-top: 32px; display:flex; gap: 28px; flex-wrap:wrap;
+    font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+  }
+  .meta-row span b{ color: var(--amber); font-weight:500; }
+
+  nav{ max-width: 760px; margin: 0 auto; padding: 20px 24px 0; }
+  nav ul{ list-style:none; display:flex; flex-wrap:wrap; gap: 8px 10px; }
+  nav a{
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    text-decoration:none; border: 1px solid var(--line);
+    padding: 6px 12px; border-radius: 999px; transition: all .15s ease; white-space:nowrap;
+  }
+  nav a:hover{ border-color: var(--amber-dim); color: var(--amber); }
+
+  main{ max-width: 760px; margin: 0 auto; padding: 0 24px; }
+  section{ padding: 56px 0 8px; border-bottom: 1px solid var(--line); }
+  section:last-of-type{ border-bottom: none; }
+  .sec-head{ display:flex; align-items:baseline; gap: 16px; margin-bottom: 12px; }
+  .sec-num{
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    border: 1px solid var(--amber-dim); border-radius: 6px;
+    padding: 3px 9px; flex-shrink:0;
+  }
+  h2{ font-family: var(--serif); font-weight: 600; font-size: 25px; color: var(--text); }
+  .sec-intro{ color: var(--text-dim); font-size: 15px; margin-bottom: 26px; }
+  h3{ font-family: var(--sans); font-weight: 600; font-size: 16px; color: var(--sage); margin: 30px 0 10px; }
+  h4{ font-family: var(--sans); font-weight: 600; font-size: 14.5px; color: var(--text); margin: 18px 0 8px; }
+  p{ color: var(--text-dim); margin-bottom: 14px; }
+  p b, li b{ color: var(--text); font-weight: 600; }
+  code{
+    font-family: var(--mono); font-size: 0.88em; background: var(--surface-2);
+    color: var(--amber); padding: 2px 6px; border-radius: 4px;
+  }
+
+  ul.list, ol.list{ margin: 8px 0 20px 0; padding-left: 20px; color: var(--text-dim); }
+  ul.list li, ol.list li{ margin-bottom: 10px; }
+  ul.list li::marker{ color: var(--sage); }
+
+  .table-wrap{ overflow-x:auto; margin: 18px 0 26px; border: 1px solid var(--line); border-radius: 10px; }
+  table{ width:100%; border-collapse: collapse; font-size: 14px; }
+  thead th{
+    font-family: var(--mono); font-weight: 500; text-align:left; font-size: 12px;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--sage);
+    background: var(--surface-2); padding: 12px 14px; border-bottom: 1px solid var(--line);
+  }
+  tbody td{ padding: 12px 14px; border-bottom: 1px solid var(--line); color: var(--text-dim); vertical-align: top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody td:first-child{ color: var(--text); font-weight:500; }
+  tbody tr:hover{ background: var(--surface); }
+
+  .callout{
+    background: var(--surface); border-left: 3px solid var(--amber);
+    border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 22px 0;
+  }
+  .callout .tag{
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--amber); display:block; margin-bottom: 6px;
+  }
+  .callout p{ margin-bottom:8px; color: var(--text-dim); font-size: 14.5px; line-height: 1.7; }
+  .callout p:last-child{ margin-bottom:0; }
+  .callout p b{ color: var(--text); font-weight: 600; }
+  .callout.warn{ border-left-color: var(--coral); }
+  .callout.warn .tag{ color: var(--coral); }
+  .callout.eg{ border-left-color: var(--sage); }
+  .callout.eg .tag{ color: var(--sage); }
+
+  .cards{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0 26px; }
+  @media (max-width: 560px){ .cards{ grid-template-columns: 1fr; } }
+  .card{ background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+  .card .card-title{
+    font-family: var(--mono); font-size: 12px; color: var(--sage);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
+  }
+  .card p{ font-size: 14px; margin-bottom: 0; color: var(--text-dim); }
+
+  .checklist{ list-style:none; margin: 16px 0 26px; }
+  .checklist li{
+    display:flex; gap: 10px; align-items:flex-start; padding: 9px 0;
+    border-bottom: 1px dashed var(--line); color: var(--text-dim); font-size: 14.5px;
+  }
+  .checklist li:last-child{ border-bottom:none; }
+  .checklist li::before{
+    content:""; flex-shrink:0; width: 14px; height:14px; margin-top: 3px;
+    border: 1px solid var(--sage); border-radius: 4px;
+  }
+
+  .flow{ margin: 20px 0 28px; }
+  .flow-step{ display:flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .flow-step:last-child{ border-bottom:none; }
+  .flow-step .fnum{
+    font-family: var(--mono); font-size: 13px; color: var(--bg); background: var(--sage);
+    width: 26px; height: 26px; border-radius: 50%; display:flex; align-items:center;
+    justify-content:center; flex-shrink:0;
+  }
+  .flow-step .ftext b{ display:block; color: var(--text); font-size: 15px; margin-bottom: 4px; }
+  .flow-step .ftext span{ color: var(--text-dim); font-size: 13.5px; }
+
+  .glossary{
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px 20px; margin: 20px 0 26px;
+  }
+  .glossary .g-title{
+    font-family: var(--mono); font-size: 11px; color: var(--amber);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+  }
+  .glossary dl{ display:grid; grid-template-columns: max-content 1fr; gap: 6px 14px; }
+  .glossary dt{ font-family: var(--mono); font-size: 13px; color: var(--text); white-space:nowrap; }
+  .glossary dd{ font-size: 13.5px; color: var(--text-dim); }
+
+  .map-wrap{
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; margin: 18px 0 26px; overflow-x: auto;
+  }
+  .map-wrap img{ display:block; width:100%; height:auto; min-width: 900px; }
+  .map-caption{
+    font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-top: 10px; text-align:center;
+  }
+  a.reflink{ color: var(--amber); text-decoration: underline; word-break: break-all; }
+
+  footer{ max-width: 760px; margin: 0 auto; padding: 48px 24px 0; color: var(--text-faint); font-family: var(--mono); font-size: 12px; }
+  footer .line{ height:1px; background: var(--line); margin-bottom: 24px; }
+  a.backtotop{ color: var(--sage); text-decoration:none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="kicker">field notes / machine learning · ฉบับอธิบายละเอียด</div>
+    <h1>เลือกและประเมินโมเดล ML ให้เป็นระบบ</h1>
+    <p class="subtitle">สรุปบทเรียนแบบละเอียด อธิบายทุกคำศัพท์และตัวย่อ เขียนให้คนเริ่มต้นอ่านแล้วเข้าใจได้จริง ไม่ใช่แค่ท่องจำ</p>
+    <div class="meta-row">
+      <span>อ้างอิง: <b>scikit-learn 1.9.0 user guide</b></span>
+      <span>ระดับ: <b>Beginner-friendly</b></span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="#s1">01 — EDA คือการสำรวจข้อมูล</a></li>
+    <li><a href="#s2">02 — จัดการข้อมูลที่ขาดหาย</a></li>
+    <li><a href="#s3">03 — สมมติฐานของแต่ละ Algorithm</a></li>
+    <li><a href="#s4">04 — Feature Encoding &amp; Scaling</a></li>
+    <li><a href="#s5">05 — เลือก Algorithm ตัวแรก</a></li>
+    <li><a href="#s6">06 — Train/Test Split vs Cross-Validation</a></li>
+    <li><a href="#s7">07 — ประเมินผลและรู้ว่าเมื่อไหร่ควรลองตัวถัดไป</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- ============ SECTION 1: EDA ============ -->
+  <section id="s1">
+    <div class="sec-head"><span class="sec-num">01</span><h2>EDA คือการสำรวจข้อมูลก่อนลงมือทำอะไร</h2></div>
+    <p class="sec-intro">EDA ย่อมาจาก <b>Exploratory Data Analysis</b> แปลตรงตัวว่า "การวิเคราะห์ข้อมูลเชิงสำรวจ" พูดง่ายๆ คือขั้นตอนที่คุณ "เปิดกล่องข้อมูล" ขึ้นมาดูให้ทั่วก่อน ว่าข้างในมีอะไรบ้าง ก่อนที่จะเริ่มสร้างโมเดลใดๆ ทั้งสิ้น</p>
+
+    <h3>ทำไมต้องทำ EDA ก่อนเสมอ</h3>
+    <p>ลองนึกภาพว่าคุณได้รับข้อมูลลูกค้าจากบริษัทมา แล้วรีบเอาไปเทรนโมเดลทันทีโดยไม่ดูเลยว่าข้างในมีอะไร — คุณอาจไม่รู้เลยว่ามีคอลัมน์ที่ข้อมูลหายไปครึ่งหนึ่ง มีค่าผิดปกติที่พังจากการกรอกข้อมูลผิด หรือมีลูกค้ากลุ่มหนึ่งที่มีจำนวนน้อยมากจนโมเดลไม่มีทางเรียนรู้จากกลุ่มนั้นได้เลย ถ้าไม่ทำ EDA ก่อน คุณจะสร้างโมเดลที่ดูเหมือนทำงานได้ แต่จริงๆ แล้วมีปัญหาซ่อนอยู่ ซึ่งจะมาปะทุตอนเอาไปใช้งานจริง</p>
+    <p>พูดสั้นๆ EDA คือการ "ทำความรู้จัก" ข้อมูลก่อนตัดสินใจอะไรทั้งนั้น ทั้งเรื่องจะจัดการข้อมูลที่ขาดหายยังไง จะเลือก algorithm ตัวไหน หรือจะสร้าง feature ใหม่อะไรเพิ่ม</p>
+
+    <h3>ขั้นตอนของการทำ EDA (เรียงลำดับที่ควรทำจริง)</h3>
+
+    <h4>ขั้นที่ 1 — ดูภาพรวมของข้อมูลก่อน (Data Overview)</h4>
+    <p>สิ่งแรกที่ควรทำทันทีที่เปิดไฟล์ข้อมูล คือถามคำถามพื้นฐานกับตัวข้อมูลเอง:</p>
+    <ul class="list">
+      <li><b>ข้อมูลมีขนาดเท่าไหร่</b> — มีกี่แถว (แต่ละแถวคือ 1 ตัวอย่างข้อมูล เช่น ลูกค้า 1 คน) และมีกี่คอลัมน์ (แต่ละคอลัมน์คือ 1 คุณสมบัติ เช่น อายุ, รายได้, เพศ) ถ้าใช้ library <code>pandas</code> ในภาษา Python จะเช็คด้วยคำสั่ง <code>df.shape</code></li>
+      <li><b>แต่ละคอลัมน์เป็นข้อมูลชนิดไหน</b> — เป็นตัวเลข (numeric เช่น อายุ, ราคา), เป็นข้อความ/หมวดหมู่ (categorical เช่น เพศ, จังหวัด), หรือเป็นวันที่-เวลา (datetime) เพราะแต่ละชนิดต้องจัดการต่างกัน เช็คด้วยคำสั่ง <code>df.dtypes</code> หรือ <code>df.info()</code></li>
+      <li><b>ลองดูข้อมูลจริงสักหน่อย</b> — เปิดดูแถวแรกๆ (<code>df.head()</code>) หรือสุ่มดูบางแถว (<code>df.sample()</code>) เพื่อให้เห็นภาพว่าข้อมูลจริงหน้าตาเป็นยังไง บางทีก็เจอปัญหาที่ตาเปล่ามองเห็นได้ทันที เช่น ค่าติดลบในคอลัมน์อายุ</li>
+      <li><b>มีแถวที่ซ้ำกันไหม</b> (duplicate rows) — ถ้ามีข้อมูลซ้ำกันเป๊ะๆ อาจเกิดจากการเก็บข้อมูลผิดพลาด ถ้าปล่อยไว้จะทำให้โมเดลให้น้ำหนักกับข้อมูลชุดนั้นมากเกินจริง เช็คด้วย <code>df.duplicated().sum()</code></li>
+    </ul>
+
+    <h4>ขั้นที่ 2 — วิเคราะห์ทีละตัวแปร (Univariate Analysis)</h4>
+    <p><b>Univariate</b> แปลว่า "ตัวแปรเดียว" ขั้นนี้คือการดูแต่ละคอลัมน์แยกกันทีละตัว ไม่เอาไปเทียบกับคอลัมน์อื่นก่อน เพื่อเข้าใจ "ธรรมชาติ" ของแต่ละตัวแปร</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ชนิดข้อมูล</th><th>สิ่งที่ต้องดู</th><th>เครื่องมือที่ใช้</th></tr></thead>
+        <tbody>
+          <tr><td>ตัวเลข (Numeric)</td><td>ค่าเฉลี่ย (mean), ค่ากลาง (median), ค่าเบี่ยงเบนมาตรฐาน (standard deviation คือค่าที่บอกว่าข้อมูลกระจายตัวมากน้อยแค่ไหน), ค่าต่ำสุด-สูงสุด, ควอร์ไทล์ (quartiles คือจุดแบ่งข้อมูลออกเป็น 4 ส่วนเท่าๆ กัน), ความเบ้ของข้อมูล (skewness)</td><td><code>df.describe()</code>, histogram (กราฟแท่งแสดงการกระจายตัว), box plot (กราฟกล่องแสดงควอร์ไทล์และค่าผิดปกติ)</td></tr>
+          <tr><td>หมวดหมู่ (Categorical)</td><td>มีกี่ค่าที่ไม่ซ้ำกัน (unique values), แต่ละหมวดหมู่มีความถี่เท่าไหร่, ข้อมูลแต่ละ class เท่ากันไหมหรือเบ้ไปทางใดทางหนึ่งมาก (class imbalance)</td><td><code>value_counts()</code>, bar chart (กราฟแท่ง)</td></tr>
+          <tr><td>วันที่-เวลา (Datetime)</td><td>ข้อมูลครอบคลุมช่วงเวลาไหนถึงไหน, ความถี่ของข้อมูลตามช่วงเวลาสม่ำเสมอไหม</td><td>line plot (กราฟเส้น) ตามแกนเวลา</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><b>สิ่งที่ต้องสังเกตเป็นพิเศษในขั้นนี้:</b></p>
+    <ul class="list">
+      <li><b>ความเบ้ (skewness)</b> — คือการที่ข้อมูลกองอยู่ด้านใดด้านหนึ่งของกราฟมากผิดปกติ แทนที่จะกระจายสมมาตรแบบระฆังคว่ำ เช่น ข้อมูลรายได้มักเบ้ขวา (คนส่วนใหญ่รายได้น้อย มีส่วนน้อยที่รายได้สูงมากๆ ลากหางไปทางขวา) ถ้าข้อมูลเบ้มาก บาง algorithm (โดยเฉพาะที่สมมติว่าข้อมูลเป็นโค้งระฆังปกติ) จะทำงานได้ไม่ดี อาจต้องแปลงข้อมูลด้วยฟังก์ชันลอการิทึม (log-transform) ก่อน</li>
+      <li><b>ข้อมูลไม่สมดุล (class imbalance)</b> — ถ้าเป็นโจทย์ทำนายหมวดหมู่ (classification) แล้วพบว่าหมวดหมู่หนึ่งมีข้อมูล 95% ส่วนอีกหมวดหมู่มีแค่ 5% (เช่น ตรวจจับธุรกรรมทุจริตในบัตรเครดิต ที่ธุรกรรมปกติมีเยอะกว่าธุรกรรมทุจริตมาก) ต้องวางแผนรับมือตั้งแต่ตอนนี้ เพราะโมเดลอาจ "ขี้เกียจ" ทายแต่กลุ่มใหญ่แล้วได้ accuracy สูงลวงตา</li>
+    </ul>
+
+    <div class="callout warn">
+      <span class="tag">วิธีรับมือ Class Imbalance</span>
+      <p>ถ้าเจอข้อมูลไม่สมดุล มีสิ่งที่ต้องแก้ 2 ระดับ:</p>
+      <p><b>ระดับตัวชี้วัด (Metric)</b> — ห้ามใช้ accuracy วัดผลเด็ดขาด เพราะถ้าข้อมูล 95% เป็นกลุ่มเดียวกัน โมเดลที่ทายกลุ่มใหญ่ทุกครั้งก็ได้ accuracy 95% ทั้งที่ไม่ได้เรียนรู้อะไรเลย ให้ใช้ F1-score (ค่าที่รวม precision กับ recall), PR-AUC (Precision-Recall AUC คือค่าพื้นที่ใต้กราฟระหว่าง precision กับ recall เหมาะกับข้อมูลไม่สมดุลมากกว่า ROC-AUC) หรือ Balanced Accuracy (accuracy ที่ปรับถ่วงน้ำหนักตามสัดส่วนของแต่ละ class) แทน</p>
+      <p><b>ระดับข้อมูล/โมเดล</b> — ใช้เทคนิค Resampling เช่น Oversampling ด้วย SMOTE (Synthetic Minority Oversampling Technique คือการสร้างข้อมูลสังเคราะห์เพิ่มให้กลุ่มย่อย) หรือ Undersampling (ลดจำนวนข้อมูลกลุ่มใหญ่ลงให้สมดุลกับกลุ่มย่อย) หรือปรับพารามิเตอร์ของโมเดลโดยตรง เช่นตั้งค่า <code>class_weight='balanced'</code> ใน Random Forest หรือ Logistic Regression เพื่อให้โมเดลให้น้ำหนักกับกลุ่มย่อยมากขึ้นโดยอัตโนมัติ</p>
+    </div>
+
+    <h4>ขั้นที่ 3 — สำรวจข้อมูลที่ขาดหาย (Missing Values Analysis)</h4>
+    <p>ดูว่าแต่ละคอลัมน์มีข้อมูลหายไปกี่เปอร์เซ็นต์ (<code>df.isnull().mean() * 100</code>) และลองดู "รูปแบบ" การหาย เช่น คอลัมน์ A กับ B มักหายพร้อมกันไหม การสังเกตแบบนี้จะช่วยบอกใบ้ได้ว่าทำไมข้อมูลถึงหาย ซึ่งเป็นจุดเริ่มต้นของการวางแผนว่าจะจัดการยังไง (อธิบายละเอียดในหัวข้อถัดไป) เครื่องมือที่ช่วยดู pattern แบบนี้ได้ดีคือ library ชื่อ <code>missingno</code></p>
+
+    <h4>ขั้นที่ 4 — ตรวจหาค่าผิดปกติ (Outlier Detection)</h4>
+    <p><b>Outlier</b> คือค่าที่ผิดแปลกไปจากข้อมูลส่วนใหญ่อย่างเห็นได้ชัด เช่น อายุ 250 ปี หรือราคาสินค้าติดลบ วิธีตรวจหามีหลายแบบ:</p>
+    <ul class="list">
+      <li><b>Box plot (กราฟกล่อง)</b> — เป็นกราฟที่แสดงการกระจายตัวของข้อมูลเป็นภาพ เห็น outlier ได้ง่ายด้วยตาเปล่าเพราะจะโผล่เป็นจุดออกไปนอกกล่อง</li>
+      <li><b>วิธี IQR (Interquartile Range แปลว่า "พิสัยระหว่างควอร์ไทล์")</b> — คำนวณจากผลต่างระหว่างควอร์ไทล์ที่ 3 (Q3 คือจุดที่ 75% ของข้อมูลอยู่ต่ำกว่า) กับควอร์ไทล์ที่ 1 (Q1 คือจุดที่ 25% ของข้อมูลอยู่ต่ำกว่า) ค่าที่ต่ำกว่า Q1 ลบ 1.5 เท่าของ IQR หรือสูงกว่า Q3 บวก 1.5 เท่าของ IQR จะถือว่าเป็น outlier</li>
+      <li><b>Z-score</b> — คือค่าที่บอกว่าข้อมูลจุดหนึ่งห่างจากค่าเฉลี่ยกี่เท่าของค่าเบี่ยงเบนมาตรฐาน ถ้าห่างเกิน 3 เท่า มักถือว่าเป็น outlier</li>
+    </ul>
+    <div class="callout warn">
+      <span class="tag">ข้อควรระวัง</span>
+      <p>อย่ารีบลบ outlier ทันทีที่เจอ ต้องถามก่อนเสมอว่า "ค่าผิดปกตินี้เกิดจากความผิดพลาดในการเก็บข้อมูล หรือเป็นเหตุการณ์จริงที่สำคัญ" เช่น ยอดขายที่พุ่งสูงผิดปกติในวันโปรโมชั่นใหญ่ ไม่ใช่ข้อผิดพลาด แต่เป็นข้อมูลจริงที่มีความหมาย ถ้าลบทิ้งไปเฉยๆ โมเดลจะไม่มีทางเรียนรู้เหตุการณ์แบบนั้นได้เลย</p>
+    </div>
+
+    <h4>ขั้นที่ 5 — วิเคราะห์ความสัมพันธ์ระหว่างตัวแปร (Bivariate / Multivariate Analysis)</h4>
+    <p><b>Bivariate</b> แปลว่า "สองตัวแปร" ส่วน <b>Multivariate</b> แปลว่า "หลายตัวแปร" ขั้นนี้คือการดูว่าตัวแปรต่างๆ มีความสัมพันธ์กันยังไงบ้าง ไม่ใช่ดูแยกทีละตัวเหมือนขั้นที่ 2 แล้ว</p>
+    <ul class="list">
+      <li><b>ตัวเลข vs ตัวเลข</b> — ใช้ correlation matrix (ตารางแสดงค่าความสัมพันธ์เชิงเส้นระหว่างคู่ตัวแปร มีค่าตั้งแต่ -1 ถึง 1) แสดงผลเป็น heatmap (กราฟความร้อน ที่ใช้สีบอกความเข้มของความสัมพันธ์) ขั้นนี้ยังใช้เช็คปัญหาที่เรียกว่า multicollinearity ได้ด้วย (คือตัวแปรหลายตัวสัมพันธ์กันเองสูงมาก ซึ่งจะอธิบายเพิ่มในหัวข้อถัดไป)</li>
+      <li><b>ตัวเลข vs หมวดหมู่</b> — เช่น ดูว่ารายได้เฉลี่ยของแต่ละจังหวัดต่างกันไหม ใช้ box plot แยกตามหมวดหมู่ หรือ group by แล้วหาค่าสรุป (aggregate)</li>
+      <li><b>หมวดหมู่ vs หมวดหมู่</b> — ใช้ตาราง cross-tabulation (ตารางไขว้ที่นับจำนวนของแต่ละคู่ค่าที่เกิดขึ้นร่วมกัน, <code>pd.crosstab()</code>) หรือ stacked bar chart (กราฟแท่งซ้อน)</li>
+      <li><b>ตัวแปรอื่นๆ vs ตัวแปรเป้าหมาย (target)</b> — นี่คือขั้นที่สำคัญที่สุด เพราะ target คือสิ่งที่โมเดลจะต้องทำนาย การดูว่าตัวแปรไหนมีความสัมพันธ์กับ target ชัดเจน จะช่วยให้เดาได้คร่าวๆ ว่า feature ไหนน่าจะสำคัญกับการทำนาย</li>
+    </ul>
+
+    <h4>ขั้นที่ 6 — สรุปข้อสังเกตเป็นสมมติฐานเบื้องต้น</h4>
+    <p>หลังสำรวจครบทุกขั้นแล้ว ควรสรุปสิ่งที่พบเป็นข้อความสั้นๆ เช่น "ตัวแปร X ดูมีผลต่อ target ชัดเจน", "ตัวแปร A กับ B มีความสัมพันธ์กันเองสูงมาก (อาจต้องเลือกใช้แค่ตัวเดียว)", "ข้อมูลไม่สมดุลมาก ต้องระวังตอนเทรนโมเดล" ข้อสังเกตเหล่านี้จะเป็นตัวนำทางในการตัดสินใจขั้นต่อไปทั้งหมด ทั้งการสร้าง feature ใหม่ (feature engineering) และการเลือก algorithm</p>
+
+    <h3>เครื่องมือที่ใช้บ่อยในภาษา Python</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>งาน</th><th>Library (คลังโปรแกรมสำเร็จรูป)</th></tr></thead>
+        <tbody>
+          <tr><td>จัดการข้อมูลตาราง (โหลด, กรอง, สรุปข้อมูล)</td><td><code>pandas</code></td></tr>
+          <tr><td>วาดกราฟสถิติพื้นฐาน</td><td><code>matplotlib</code>, <code>seaborn</code></td></tr>
+          <tr><td>วาดกราฟที่โต้ตอบได้ (ซูม, hover ดูค่า)</td><td><code>plotly</code></td></tr>
+          <tr><td>ดู pattern ของข้อมูลที่ขาดหายโดยเฉพาะ</td><td><code>missingno</code></td></tr>
+          <tr><td>สร้างรายงาน EDA อัตโนมัติในคำสั่งเดียว</td><td><code>ydata-profiling</code> (ชื่อเดิมคือ pandas-profiling), <code>sweetviz</code> — เหมาะเป็นจุดเริ่มต้นเร็วๆ ก่อนไปเจาะลึกเอง</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <span class="tag">ข้อควรระวังของเครื่องมือ Auto-EDA</span>
+      <p><code>ydata-profiling</code> และ <code>sweetviz</code> สะดวกมากสำหรับข้อมูลขนาดเล็ก-กลาง แต่<b>ไม่ควรใช้กับ dataset ขนาดใหญ่มากๆ (บิ๊กดาต้า)</b> เพราะเครื่องมือเหล่านี้คำนวณสถิติและ correlation ของทุกคอลัมน์แบบละเอียดพร้อมกันทั้งหมด ทำให้กินหน่วยความจำ (RAM) สูงมาก หากข้อมูลมีหลักล้านแถวขึ้นไป อาจทำให้ Jupyter Notebook ค้างหรือ crash ได้ ถ้าข้อมูลใหญ่ ควรสุ่มตัวอย่างข้อมูลบางส่วนมาทำรายงานก่อน หรือทำ EDA ทีละส่วนด้วยตัวเองแทน</p>
+    </div>
+
+    <h3>Checklist สรุป — สิ่งที่ควรทำครบทุกครั้งก่อนไปขั้นต่อไป</h3>
+    <ul class="checklist">
+      <li>รู้ขนาดข้อมูล (จำนวนแถว-คอลัมน์) และชนิดข้อมูลแต่ละคอลัมน์แล้ว</li>
+      <li>ดู distribution (การกระจายตัว) ของแต่ละตัวแปรเชิงตัวเลข และความถี่ของแต่ละหมวดหมู่แล้ว</li>
+      <li>รู้แล้วว่าคอลัมน์ไหนมีข้อมูลขาดหายบ้าง และขาดหายกี่เปอร์เซ็นต์</li>
+      <li>ตรวจสอบค่าผิดปกติ (outliers) แล้ว</li>
+      <li>ดู correlation (ความสัมพันธ์) ระหว่าง features ด้วยกันเอง และระหว่าง features กับ target แล้ว</li>
+      <li>เช็คแล้วว่าข้อมูลสมดุลไหม (ถ้าเป็นโจทย์ classification)</li>
+      <li>เช็คแล้วว่ามีแถวข้อมูลที่ซ้ำกันไหม</li>
+    </ul>
+  </section>
+
+  <!-- ============ SECTION 2: MISSING DATA ============ -->
+  <section id="s2">
+    <div class="sec-head"><span class="sec-num">02</span><h2>การจัดการข้อมูลที่ขาดหาย (Missing Data)</h2></div>
+    <p class="sec-intro">แทบทุก dataset ในโลกจริงจะมีข้อมูลบางส่วนขาดหายไป (missing values) ไม่ว่าจะเพราะคนกรอกแบบสอบถามไม่ครบ เซนเซอร์เสีย หรือระบบบันทึกข้อมูลผิดพลาด การจัดการเรื่องนี้ให้ถูกวิธีสำคัญมาก เพราะถ้าจัดการผิด อาจทำให้โมเดลเรียนรู้ pattern ที่ผิดเพี้ยนไปจากความจริง</p>
+
+    <h3>ระยะที่ 1 — เข้าใจ "ประเภท" ของการขาดหายก่อน</h3>
+    <p>ก่อนจะเลือกวิธีเติมข้อมูล (imputation) ต้องเข้าใจก่อนว่า "ทำไม" ข้อมูลถึงหาย เพราะเหตุผลที่ต่างกันจะกำหนดว่าควรจัดการต่างกัน นักสถิติแบ่งการขาดหายออกเป็น 3 ประเภทหลัก:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ประเภท (ชื่อเต็ม)</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr></thead>
+        <tbody>
+          <tr><td>MCAR<br><span style="font-size:12px;color:var(--text-faint)">Missing Completely At Random<br>(ขาดหายแบบสุ่มโดยสมบูรณ์)</span></td><td>การขาดหายเกิดขึ้นแบบสุ่มล้วนๆ ไม่เกี่ยวข้องกับตัวแปรใดเลย ไม่ว่าจะเป็นตัวแปรที่สังเกตได้หรือตัวค่าที่หายไปเอง</td><td>เซนเซอร์วัดอุณหภูมิเสียแบบสุ่มบางวัน ไม่เกี่ยวกับว่าอุณหภูมิวันนั้นสูงหรือต่ำ</td></tr>
+          <tr><td>MAR<br><span style="font-size:12px;color:var(--text-faint)">Missing At Random<br>(ขาดหายแบบสุ่ม โดยสัมพันธ์กับตัวแปรอื่น)</span></td><td>การขาดหายไม่ได้สุ่มล้วนๆ แต่สัมพันธ์กับตัวแปร "อื่น" ที่เรามีข้อมูลอยู่แล้ว ไม่ได้สัมพันธ์กับค่าที่หายไปเอง</td><td>คนอายุน้อยมักไม่กรอกข้อมูลรายได้ในแบบสอบถาม การหายของ "รายได้" สัมพันธ์กับ "อายุ" ซึ่งเรารู้อยู่แล้ว</td></tr>
+          <tr><td>MNAR<br><span style="font-size:12px;color:var(--text-faint)">Missing Not At Random<br>(ขาดหายแบบไม่สุ่ม)</span></td><td>การขาดหายสัมพันธ์กับ "ค่าที่หายไปเอง" นี่คือประเภทที่ยากและอันตรายที่สุด เพราะเราไม่มีทางรู้ค่าที่แท้จริง แต่การหายนั้นมีเหตุผลผูกกับตัวมันเอง</td><td>คนที่มีรายได้สูงมากมักไม่ยอมกรอกข้อมูลรายได้ในแบบสอบถาม การหายของ "รายได้" สัมพันธ์กับตัวค่ารายได้เอง</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout eg">
+      <span class="tag">ทำไมต้องรู้ประเภทนี้ก่อน</span>
+      <p>ถ้าข้อมูลเป็น MCAR การลบแถวที่ขาดหายทิ้งไปจะไม่ทำให้ผลลัพธ์เพี้ยนมากนัก แต่ถ้าเป็น MNAR (เช่นคนรวยไม่กรอกรายได้) การลบทิ้งจะทำให้ข้อมูลที่เหลือมีแต่คนรายได้น้อย-กลาง ทำให้โมเดลเรียนรู้ภาพที่ผิดเพี้ยนไปจากความจริงทั้งหมด</p>
+    </div>
+
+    <h3>ระยะที่ 2 — สำรวจก่อนตัดสินใจ (อย่าเพิ่งรีบเลือกวิธี)</h3>
+    <ul class="list">
+      <li>ดูเปอร์เซ็นต์ข้อมูลที่หายไปในแต่ละคอลัมน์ (<code>df.isnull().mean() * 100</code>)</li>
+      <li>วาดกราฟดู pattern การหาย — สังเกตว่าคอลัมน์ไหนมักหายพร้อมกันเป็นกลุ่ม (ใช้ library <code>missingno</code>) ซึ่งจะช่วยบอกใบ้ว่าน่าจะเป็น MAR หรือ MNAR</li>
+      <li>เช็คว่าคอลัมน์ที่มีข้อมูลหายไปนั้น "สำคัญ" กับสิ่งที่เราจะทำนาย (target) มากแค่ไหน ถ้าสำคัญมากต้องระวังเป็นพิเศษ ไม่ควรลบทิ้งง่ายๆ</li>
+    </ul>
+
+    <h3>ระยะที่ 3 — กลยุทธ์การจัดการ (เรียงจากวิธีง่ายไปซับซ้อน)</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>วิธี</th><th>อธิบาย</th><th>ใช้เมื่อไหร่</th></tr></thead>
+        <tbody>
+          <tr><td>ลบทั้งแถว<br><span style="font-size:12px;color:var(--text-faint)">(listwise deletion)</span></td><td>ลบทิ้งทั้งแถวข้อมูล ถ้าแถวนั้นมีค่าใดค่าหนึ่งขาดหาย</td><td>เฉพาะเมื่อข้อมูลขาดหายน้อยมาก (ต่ำกว่า 5%) และมั่นใจว่าเป็น MCAR เท่านั้น ไม่งั้นจะเสียข้อมูลโดยไม่จำเป็นและอาจเกิดความเอนเอียง (bias)</td></tr>
+          <tr><td>ลบทั้งคอลัมน์</td><td>ตัดคอลัมน์นั้นออกไปเลยทั้งคอลัมน์</td><td>เมื่อคอลัมน์นั้นมีข้อมูลขาดหายเยอะมาก (ประมาณ 60-70% ขึ้นไป) และไม่ใช่ feature ที่สำคัญกับการทำนาย ไม่มีตัวเลขเปอร์เซ็นต์ตายตัวที่ใช้ตัดสินใจได้ทันที ต้องพิจารณาควบคู่กับความสำคัญของ feature นั้นเสมอ</td></tr>
+          <tr><td>เติมด้วยค่าเฉลี่ย<br><span style="font-size:12px;color:var(--text-faint)">(Mean imputation)</span></td><td>เอาค่าเฉลี่ยของทั้งคอลัมน์มาเติมแทนค่าที่หาย</td><td>ใช้กับข้อมูลตัวเลขที่มีการกระจายตัวค่อนข้างสมมาตร (symmetric) และไม่มี outlier เยอะ เพราะ outlier จะดึงค่าเฉลี่ยให้เพี้ยนไป</td></tr>
+          <tr><td>เติมด้วยค่ากลาง<br><span style="font-size:12px;color:var(--text-faint)">(Median imputation)</span></td><td>เอาค่ากลาง (ค่าที่อยู่ตรงกลางเมื่อเรียงข้อมูลจากน้อยไปมาก) มาเติมแทน</td><td>ใช้กับข้อมูลตัวเลขที่มี outlier หรือมีการกระจายตัวเบ้ (skewed) เพราะ median ไม่ถูกดึงด้วย outlier เหมือนค่าเฉลี่ย</td></tr>
+          <tr><td>เติมด้วยฐานนิยม<br><span style="font-size:12px;color:var(--text-faint)">(Mode imputation)</span></td><td>เอาค่าที่พบบ่อยที่สุดมาเติมแทน</td><td>ใช้กับข้อมูลประเภทหมวดหมู่ (categorical) เพราะหมวดหมู่ไม่มีค่าเฉลี่ยหรือค่ากลางให้คำนวณ</td></tr>
+          <tr><td>เติมด้วยค่าคงที่หรือป้ายกำกับ<br><span style="font-size:12px;color:var(--text-faint)">(Constant/flag value)</span></td><td>เติมด้วยค่าคงที่ที่ไม่ปนกับข้อมูลจริง เช่น -1 หรือคำว่า "Unknown"</td><td>ใช้เมื่อ "การขาดหายเอง" มีความหมายสำคัญ (มักเป็นกรณี MNAR) เพราะการเติมด้วยค่าเฉลี่ยจะไปกลบสัญญาณที่ว่า "ข้อมูลนี้เคยหายไป" ทิ้ง</td></tr>
+          <tr><td>เติมด้วยค่าก่อนหน้า/ค่าถัดไป<br><span style="font-size:12px;color:var(--text-faint)">(Forward fill / Backward fill)</span></td><td>เอาค่าจากแถวก่อนหน้า หรือแถวถัดไป มาเติมแทน</td><td>ใช้กับข้อมูลอนุกรมเวลา (time series) ที่มีลำดับเวลาต่อเนื่องกัน เช่น ราคาหุ้นรายวัน</td></tr>
+          <tr><td>KNN Imputer<br><span style="font-size:12px;color:var(--text-faint)">(K-Nearest Neighbors Imputer)</span></td><td>หาข้อมูล "เพื่อนบ้าน" ที่ใกล้เคียงที่สุด (คำนวณจาก features อื่นที่มีอยู่) แล้วเอาค่าของเพื่อนบ้านมาเติมแทน</td><td>ใช้เมื่อ features ต่างๆ มีความสัมพันธ์กัน จะให้ผลแม่นยำกว่าการเติมด้วยค่าเฉลี่ย/ค่ากลางแบบตายตัว</td></tr>
+          <tr><td>Iterative Imputer<br><span style="font-size:12px;color:var(--text-faint)">(หรือเรียกว่า MICE — Multiple Imputation by Chained Equations)</span></td><td>ใช้ความสัมพันธ์ระหว่างหลาย features พร้อมกัน สร้างโมเดลย่อยเพื่อทำนายค่าที่หายไปซ้ำไปซ้ำมาหลายรอบจนค่าคงที่</td><td>ใช้เมื่อต้องการความแม่นยำสูง และมีเวลา/ทรัพยากรคำนวณเพียงพอ (ใช้เวลานานกว่าวิธีอื่น)</td></tr>
+          <tr><td>Missing Indicator</td><td>เพิ่มคอลัมน์ใหม่เป็นค่า True/False บอกว่าค่าตำแหน่งนี้เคยขาดหายมาก่อนหรือไม่</td><td>ควรใช้ควบคู่กับวิธี impute อื่นเสมอ เพื่อไม่ให้เสียสัญญาณว่า "ค่านี้เคยหายไป" ซึ่งบางครั้งตัวการขาดหายเองก็มีประโยชน์ในการทำนาย</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <span class="tag">หลักคิดสำคัญที่สุดของหัวข้อนี้</span>
+      <p>ไม่มีตัวเลขเปอร์เซ็นต์ตายตัวว่า "ขาดหายเกินเท่านี้ต้องลบทิ้ง" การตัดสินใจต้องพิจารณา 3 อย่างประกอบกันเสมอ คือ (1) ขาดหายไปกี่เปอร์เซ็นต์ (2) feature นั้นสำคัญกับการทำนายแค่ไหน (3) ประเภทของการขาดหายคือ MCAR, MAR หรือ MNAR</p>
+    </div>
+
+    <h3>ระยะที่ 4 — ข้อควรระวังที่มือใหม่มักพลาด</h3>
+    <ul class="checklist">
+      <li><b>ป้องกัน Data Leakage</b> (การรั่วไหลของข้อมูล) — ต้องคำนวณค่าเฉลี่ย/ค่ากลางที่จะใช้เติม (fit imputer) จาก <b>ชุดข้อมูลเทรน (train set) เท่านั้น</b> แล้วค่อยนำไปเติมทั้งชุดเทรนและชุดทดสอบ (test set) ห้ามคำนวณค่าเฉลี่ยจากข้อมูลทั้งหมดรวมชุดทดสอบก่อนแบ่งข้อมูล เพราะจะทำให้โมเดลแอบ "เห็น" ข้อมูลของชุดทดสอบล่วงหน้า ทำให้ผลประเมินดูดีเกินจริง</li>
+      <li>ลองสร้างคอลัมน์ missing indicator ควบคู่กับการ impute เสมอ เพราะบางครั้งตัว "การขาดหาย" เองก็มีพลังในการทำนาย (predictive power) ที่ไม่ควรทิ้งไปเฉยๆ</li>
+      <li>อย่า impute แล้วลืมเช็คผลกระทบต่อการกระจายตัวของข้อมูล — การเติมด้วยค่าเฉลี่ยบ่อยครั้งทำให้ค่าเบี่ยงเบนมาตรฐาน (variance) ของข้อมูลลดลงอย่างไม่เป็นธรรมชาติ เพราะค่าที่เติมเข้าไปทั้งหมดเหมือนกันหมด</li>
+    </ul>
+
+    <div class="callout">
+      <span class="tag">แนวปฏิบัติจริงใน Python — ใช้ sklearn Pipeline</span>
+      <p>ในทางทฤษฎีเรารู้ว่าต้อง fit imputer จาก train set เท่านั้น แต่ในทางปฏิบัติ มือใหม่มักพลาดโดยไม่รู้ตัว เช่น เผลอเรียก <code>StandardScaler()</code> หรือ impute ข้อมูลทั้ง DataFrame ก่อนจะเรียก <code>train_test_split()</code> หรือก่อนทำ Cross-Validation ซึ่งทำให้ข้อมูลชุดทดสอบ "รั่ว" เข้าไปมีอิทธิพลต่อชุดเทรนโดยไม่ได้ตั้งใจ</p>
+      <p>ทางแก้ที่แนะนำคือใช้ <code>sklearn.pipeline.Pipeline</code> เสมอ โดยรวมขั้นตอน preprocessing (เช่น imputer, scaler) กับโมเดลไว้เป็นก้อนเดียวกัน แล้วส่ง Pipeline ทั้งก้อนเข้า <code>train_test_split()</code> หรือ Cross-Validation แทนที่จะแยกทำ preprocessing ก่อนด้วยมือ วิธีนี้จะทำให้ทุกขั้นตอนของ Pipeline ถูกคำนวณใหม่ภายในแต่ละ fold โดยอัตโนมัติ ป้องกัน data leakage ได้อย่างแท้จริง ไม่ต้องพึ่งความระมัดระวังของมนุษย์เพียงอย่างเดียว</p>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 3: ALGORITHM ASSUMPTIONS ============ -->
+  <section id="s3">
+    <div class="sec-head"><span class="sec-num">03</span><h2>สมมติฐานของแต่ละ Algorithm</h2></div>
+    <p class="sec-intro">Algorithm แต่ละตัวถูกออกแบบมาด้วย "สมมติฐาน" บางอย่างเกี่ยวกับข้อมูล ถ้าข้อมูลของเราไม่ตรงกับสมมติฐานนั้น โมเดลก็อาจทำงานได้ไม่ดี หรือให้ผลลัพธ์ที่เชื่อถือไม่ได้ แม้จะยังรันโค้ดผ่านโดยไม่มี error ก็ตาม เรื่องนี้ไม่ได้มีแค่ "ข้อมูลต้องเป็นการกระจายแบบปกติ (Normal Distribution คือรูปทรงระฆังคว่ำสมมาตร)" อย่างเดียวเท่านั้น แต่ละ algorithm มีข้อกำหนดของตัวเองที่ต่างกันไป</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Algorithm</th><th>สมมติฐาน / ข้อกำหนดสำคัญ</th></tr></thead>
+        <tbody>
+          <tr><td>Linear Regression<br><span style="font-size:12px;color:var(--text-faint)">(การถดถอยเชิงเส้น)</span></td><td>สมมติว่าความสัมพันธ์ระหว่าง feature กับ target เป็นเส้นตรง (linear) โดยตรง, features ไม่ควรมีความสัมพันธ์กันเองสูงมาก (เรียกปัญหานี้ว่า multicollinearity), ค่าความผิดพลาดของการทำนาย (residuals) ควรเป็นอิสระต่อกันและมีการกระจายตัวคงที่ (homoscedasticity)</td></tr>
+          <tr><td>Logistic Regression<br><span style="font-size:12px;color:var(--text-faint)">(การถดถอยโลจิสติก)</span></td><td>ข้อควรระวัง: Logistic Regression <b>ไม่ได้</b> สมมติว่า feature มีความสัมพันธ์เชิงเส้นกับ target โดยตรง (ต่างจาก Linear Regression) แต่สมมติว่า feature มีความสัมพันธ์เชิงเส้นกับค่า log-odds หรือ logit ของความน่าจะเป็น (เขียนเป็นสูตรคือ ln(p/(1-p)) โดย p คือความน่าจะเป็นของ target) ส่วน features ก็ยังไม่ควรมีความสัมพันธ์กันเองสูงมากเช่นเดียวกับ Linear Regression</td></tr>
+          <tr><td>Naive Bayes</td><td>สมมติว่าทุก feature เป็นอิสระต่อกันโดยสมบูรณ์ (conditional independence) — ในทางปฏิบัติสมมติฐานนี้มักไม่จริงเป๊ะ แต่โมเดลก็ยังทำงานได้ดีในหลายกรณีแม้สมมติฐานจะไม่สมบูรณ์แบบ</td></tr>
+          <tr><td>KNN (K-Nearest Neighbors), SVM แบบ RBF kernel (Support Vector Machine), K-Means, PCA (Principal Component Analysis)</td><td>ไวต่อขนาด (scale) ของตัวเลขในแต่ละ feature มาก เพราะ algorithm เหล่านี้คำนวณจาก "ระยะห่าง" ระหว่างจุดข้อมูล ถ้า feature หนึ่งมีค่าตัวเลขใหญ่กว่าอีก feature มาก (เช่น รายได้เป็นหลักแสน แต่อายุเป็นหลักสิบ) feature ที่ตัวเลขใหญ่จะครอบงำการคำนวณระยะห่างทั้งหมด จำเป็นต้อง normalize หรือ standardize ข้อมูล (ปรับสเกลให้อยู่ในช่วงใกล้เคียงกัน) ก่อนใช้งานเสมอ</td></tr>
+          <tr><td>LDA (Linear Discriminant Analysis)</td><td>สมมติว่าข้อมูลในแต่ละหมวดหมู่ (class) มีการกระจายตัวแบบ Gaussian (โค้งระฆังปกติ) และมีเมทริกซ์ความแปรปรวนร่วม (covariance matrix) ที่เท่ากันในทุก class</td></tr>
+          <tr><td>Decision Tree, Random Forest, Gradient Boosting<br><span style="font-size:12px;color:var(--text-faint)">(ต้นไม้ตัดสินใจ, ป่าสุ่ม, การเพิ่มความชันแบบไล่ระดับ)</span></td><td>แทบไม่มีสมมติฐานเรื่องรูปแบบการกระจายตัวของข้อมูลเลย ไม่จำเป็นต้อง normalize ข้อมูลก่อนใช้ และไม่ค่อยไวต่อ outlier มากเท่ากลุ่ม linear model จึงเหมาะกับข้อมูลที่ยุ่งเหยิงหรือมีรูปแบบซับซ้อน</td></tr>
+          <tr><td>K-Means<br><span style="font-size:12px;color:var(--text-faint)">(อัลกอริทึมจัดกลุ่มข้อมูล)</span></td><td>สมมติว่าแต่ละกลุ่ม (cluster) มีรูปร่างเป็นทรงกลม (spherical) และมีขนาดใกล้เคียงกัน ถ้ากลุ่มข้อมูลจริงมีรูปร่างยาวรี หรือขนาดต่างกันมาก K-Means จะจัดกลุ่มได้ไม่แม่นยำ</td></tr>
+          <tr><td>SGD-based models<br><span style="font-size:12px;color:var(--text-faint)">(SGD ย่อมาจาก Stochastic Gradient Descent แปลว่า การไล่ระดับความชันแบบสุ่ม)</span></td><td>ต้อง standardize ข้อมูลก่อนเสมอ ไม่งั้นกระบวนการคำนวณหาค่าที่เหมาะสม (gradient descent) จะลู่เข้าช้ามาก หรือไม่ลู่เข้าเลย</td></tr>
+          <tr><td>Neural Networks<br><span style="font-size:12px;color:var(--text-faint)">(โครงข่ายประสาทเทียม)</span></td><td>ต้อง normalize หรือ standardize ข้อมูลก่อนเสมอ และโดยทั่วไปต้องการข้อมูลจำนวนมากพอสมควรถึงจะได้ผลลัพธ์ที่ดีกว่าโมเดลแบบอื่น ถ้าข้อมูลน้อยเกินไปมักเทรนไม่ได้ผลดี</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>คำศัพท์สำคัญที่ควรรู้จากตารางนี้</h3>
+    <div class="glossary">
+      <div class="g-title">อธิบายคำย่อและศัพท์เทคนิค</div>
+      <dl>
+        <dt>Normalize / Standardize</dt><dd>การปรับสเกลของตัวเลขในแต่ละ feature ให้อยู่ในช่วงที่ใกล้เคียงกัน (เช่น ปรับให้อยู่ระหว่าง 0-1 หรือปรับให้มีค่าเฉลี่ย 0 และค่าเบี่ยงเบนมาตรฐาน 1) เพื่อไม่ให้ feature ที่มีตัวเลขใหญ่ครอบงำ feature ที่มีตัวเลขเล็ก</dd>
+        <dt>Multicollinearity</dt><dd>ภาวะที่ feature หลายตัวมีความสัมพันธ์กันเองสูงมาก เช่น "ส่วนสูงเป็นเซนติเมตร" กับ "ส่วนสูงเป็นนิ้ว" ซึ่งจริงๆ คือข้อมูลเดียวกัน ทำให้โมเดลเชิงเส้นสับสนว่าควรให้น้ำหนักกับตัวไหน</dd>
+        <dt>Homoscedasticity</dt><dd>ภาวะที่ความคลาดเคลื่อนของการทำนาย (residuals) มีการกระจายตัวคงที่ตลอดช่วงของข้อมูล ไม่ใช่กระจายตัวมากขึ้นหรือน้อยลงตามค่าของ feature</dd>
+        <dt>Gradient Descent</dt><dd>วิธีการทางคณิตศาสตร์ที่ใช้ค่อยๆ ปรับพารามิเตอร์ของโมเดลทีละนิด เพื่อลดค่าความผิดพลาดลงเรื่อยๆ จนกว่าจะเจอค่าที่ดีที่สุด เปรียบเหมือนการเดินลงเขาทีละก้าวเพื่อหาจุดต่ำสุด</dd>
+        <dt>Log-odds / Logit</dt><dd>ค่าที่แปลงมาจากความน่าจะเป็น (probability) ให้กลายเป็นตัวเลขที่มีช่วงตั้งแต่ลบอนันต์ถึงบวกอนันต์ คำนวณจากสูตร ln(p/(1-p)) โดย p คือความน่าจะเป็น การแปลงนี้ทำให้ใช้สมการเชิงเส้นในการโมเดลความน่าจะเป็นได้ ซึ่งเป็นหัวใจของ Logistic Regression</dd>
+      </dl>
+    </div>
+
+    <h3>สิ่งที่ต้องเช็คก่อนตัดสินใจเลือก algorithm</h3>
+    <ul class="checklist">
+      <li>Feature ต่างๆ มีสเกลตัวเลขต่างกันมากไหม → ถ้าใช่ ต้อง scale ข้อมูลก่อนใช้กับ algorithm ที่คำนวณจากระยะห่าง (distance-based models) เช่น KNN, SVM, K-Means</li>
+      <li>มี multicollinearity ระหว่าง features ไหม → ถ้ามี จะกระทบความแม่นยำของ linear models เป็นพิเศษ</li>
+      <li>ข้อมูลมี outlier เยอะไหม → ถ้าเยอะ tree-based models (เช่น Decision Tree, Random Forest) จะทนทานกว่า linear models</li>
+      <li>งานนี้ต้องการให้อธิบายได้ว่าทำไมโมเดลถึงทำนายแบบนั้น (interpretability) ไหม → ถ้าต้องการ linear models และ tree models จะอ่านและอธิบายได้ง่ายกว่า neural network หรือ SVM ซึ่งเป็นเหมือนกล่องดำที่อธิบายเหตุผลได้ยากกว่า</li>
+    </ul>
+  </section>
+
+  <!-- ============ SECTION 4: FEATURE ENCODING & SCALING ============ -->
+  <section id="s4">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Feature Encoding &amp; Scaling</h2></div>
+    <p class="sec-intro">จากหัวข้อ 03 เรารู้แล้วว่า algorithm หลายตัวมีสมมติฐานเรื่องสเกลของข้อมูล และไม่รับข้อมูลที่เป็นข้อความ หัวข้อนี้คือขั้นตอนลงมือทำจริงเพื่อแปลงข้อมูลให้พร้อมป้อนเข้าโมเดล เป็นสะพานเชื่อมระหว่าง "รู้ว่าทำไมต้องทำ" กับ "เลือก algorithm ตัวไหน" ถ้าข้ามขั้นนี้ไป มักจะเจอ error ทันทีตอนเรียก <code>.fit()</code> เช่น <code>could not convert string to float</code></p>
+
+    <h3>Feature Encoding — แปลงข้อมูลหมวดหมู่ให้เป็นตัวเลข</h3>
+    <p>โมเดล machine learning ส่วนใหญ่รับข้อมูลเข้าเป็นตัวเลขเท่านั้น ถ้ามีคอลัมน์ที่เป็นข้อความหรือหมวดหมู่ (categorical) เช่น จังหวัด, เพศ, ระดับการศึกษา ต้องแปลงให้เป็นตัวเลขก่อนเสมอ วิธีแปลงที่นิยมมีดังนี้</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>วิธี</th><th>อธิบาย</th><th>ใช้เมื่อไหร่</th></tr></thead>
+        <tbody>
+          <tr><td>One-Hot Encoding</td><td>สร้างคอลัมน์ใหม่แยกสำหรับแต่ละหมวดหมู่ แต่ละคอลัมน์เป็นค่า 0 หรือ 1 บอกว่าแถวนั้นเป็นหมวดหมู่นั้นหรือไม่</td><td>ข้อมูลหมวดหมู่ที่ไม่มีลำดับ (nominal) เช่น จังหวัด, สี และจำนวนหมวดหมู่ไม่เยอะเกินไป เพราะถ้าหมวดหมู่เยอะมาก จะสร้างคอลัมน์ใหม่จำนวนมากตามไปด้วย</td></tr>
+          <tr><td>Label Encoding</td><td>แปลงแต่ละหมวดหมู่เป็นตัวเลขจำนวนเต็มเรียงกัน (0, 1, 2, ...)</td><td>เหมาะกับหมวดหมู่ที่มีลำดับ (ordinal) อยู่แล้ว ควรระวังการใช้กับข้อมูลที่ไม่มีลำดับ เพราะโมเดลบางตัว (โดยเฉพาะ linear model) อาจเข้าใจผิดว่าตัวเลขที่มากกว่าหมายถึง "มากกว่า" ทั้งที่จริงเป็นแค่หมวดหมู่คนละกลุ่ม</td></tr>
+          <tr><td>Ordinal Encoding</td><td>คล้าย Label Encoding แต่ผู้ใช้เป็นคนกำหนดลำดับของตัวเลขเองตามความหมายจริงของข้อมูล</td><td>ข้อมูลที่มีลำดับความหมายชัดเจนตามธรรมชาติ เช่น ระดับความพึงพอใจ (ต่ำ-กลาง-สูง) หรือระดับการศึกษา</td></tr>
+          <tr><td>Target / Mean Encoding</td><td>แทนแต่ละหมวดหมู่ด้วยค่าเฉลี่ยของ target ในกลุ่มนั้น</td><td>เหมาะกับหมวดหมู่ที่มีจำนวนมาก (high cardinality) เช่น รหัสไปรษณีย์ ที่ One-Hot Encoding จะสร้างคอลัมน์เยอะเกินไป ต้องระวัง data leakage เป็นพิเศษ เพราะคำนวณจาก target ต้อง fit จากชุดเทรนเท่านั้นเหมือนกับ imputer ในหัวข้อ 02</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Feature Scaling — ปรับสเกลของข้อมูลตัวเลข</h3>
+    <p>ตามที่อธิบายไว้ในหัวข้อ 03 ว่า algorithm บางกลุ่ม (KNN, SVM, K-Means, PCA, Neural Network) ไวต่อสเกลของตัวเลขมาก จำเป็นต้องปรับสเกลก่อนใช้งานเสมอ วิธีปรับสเกลที่นิยมมีดังนี้</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>วิธี</th><th>อธิบาย</th><th>ใช้เมื่อไหร่</th></tr></thead>
+        <tbody>
+          <tr><td>Standardization<br><span style="font-size:12px;color:var(--text-faint)">(Z-score scaling)</span></td><td>ปรับข้อมูลให้มีค่าเฉลี่ย (mean) เท่ากับ 0 และค่าเบี่ยงเบนมาตรฐาน (standard deviation) เท่ากับ 1</td><td>เหมาะกับข้อมูลที่มี outlier ไม่เยอะมาก เป็นตัวเลือกที่ใช้ได้ดีกับ algorithm ส่วนใหญ่ที่ต้องการ scale เช่น SVM, Logistic Regression, Neural Network</td></tr>
+          <tr><td>Normalization<br><span style="font-size:12px;color:var(--text-faint)">(Min-Max scaling)</span></td><td>ปรับข้อมูลให้อยู่ในช่วงที่กำหนดไว้แน่นอน โดยทั่วไปคือ 0 ถึง 1</td><td>เหมาะเมื่อรู้ขอบเขตค่าต่ำสุด-สูงสุดของข้อมูลแน่นอนอยู่แล้ว เช่นค่าสี pixel ของภาพ (0-255) เหมาะกับ Neural Network บางประเภท แต่ไวต่อ outlier มากกว่า Standardization เพราะ outlier หนึ่งตัวจะดึงขอบเขตของช่วงทั้งหมดให้เพี้ยนไป</td></tr>
+          <tr><td>Robust Scaling</td><td>ใช้ค่ากลาง (median) และ IQR แทนค่าเฉลี่ยและค่าเบี่ยงเบนมาตรฐาน ในการปรับสเกล</td><td>เหมาะกับข้อมูลที่มี outlier เยอะ เพราะ median และ IQR ไม่ถูกดึงด้วย outlier เหมือน mean และ std ทำให้ทนทานต่อ outlier ได้ดีกว่าสองวิธีแรก</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>ลำดับที่ถูกต้องในการทำงานร่วมกับหัวข้ออื่น</h3>
+    <ul class="checklist">
+      <li>ทำ Missing Data (หัวข้อ 02) ให้เสร็จก่อน — เพราะ encoder และ scaler ส่วนใหญ่รับค่าที่ขาดหายไม่ได้</li>
+      <li>เลือกวิธี Encoding ให้เหมาะกับความหมายของแต่ละคอลัมน์ (nominal vs ordinal) ไม่ใช่ใช้วิธีเดียวกันหมดทุกคอลัมน์</li>
+      <li>เลือกวิธี Scaling ให้ตรงกับ algorithm ที่จะใช้ตามที่สรุปไว้ในหัวข้อ 03 — ถ้าใช้ tree-based models ข้ามขั้นตอนนี้ได้เลย ไม่จำเป็นต้อง scale</li>
+      <li>ทำทุกขั้นตอนนี้ผ่าน <code>sklearn.pipeline.Pipeline</code> เช่นเดียวกับที่แนะนำไว้ในหัวข้อ 02 เพื่อป้องกัน data leakage โดยอัตโนมัติ</li>
+    </ul>
+  </section>
+
+  <!-- ============ SECTION 5: CHOOSING ESTIMATOR ============ -->
+  <section id="s5">
+    <div class="sec-head"><span class="sec-num">05</span><h2>เลือก Algorithm ตัวแรกที่จะลอง</h2></div>
+    <p class="sec-intro">scikit-learn (ไลบรารี Machine Learning ยอดนิยมของภาษา Python) มีแผนภาพชื่อ "Choosing the right estimator" หรือ "การเลือก estimator ที่เหมาะสม" (estimator คือคำเรียกรวมที่ scikit-learn ใช้เรียก algorithm/model) เป็นแผนผังการตัดสินใจแบบขั้นบันได ช่วยให้ผู้เริ่มต้นไม่ต้องเดาสุ่มว่าจะเริ่มลองโมเดลไหนก่อนดี</p>
+
+    <p>หลักการอ่านแผนภาพนี้คือ ลูกศรสีส้มที่เขียนว่า "Try next" (แปลว่า "ลองตัวถัดไป") หมายความว่า ถ้าโมเดลที่ลองอยู่ให้ผลลัพธ์ไม่ดีพอ ให้ตามลูกศรนั้นไปลองโมเดลตัวถัดไปในแผนภาพ ไล่ไปเรื่อยๆ จนกว่าจะเจอตัวที่ให้ผลลัพธ์เป็นที่พอใจ</p>
+
+    <h3>คำถามหลักที่แผนภาพใช้ไล่เรียงตามลำดับ</h3>
+    <div class="flow">
+      <div class="flow-step"><span class="fnum">1</span><div class="ftext"><b>มีข้อมูลมากกว่า 50 ตัวอย่าง (samples) ไหม</b><span>ถ้ามีน้อยกว่านี้ scikit-learn แนะนำให้เก็บข้อมูลเพิ่มก่อน เพราะข้อมูลน้อยเกินไปจะทำให้ประเมินผลไม่น่าเชื่อถือ ไม่ว่าจะเลือก algorithm ไหนก็ตาม</span></div></div>
+      <div class="flow-step"><span class="fnum">2</span><div class="ftext"><b>ข้อมูลมี label (คำตอบที่ถูกต้อง) ให้เรียนรู้ไหม</b><span>ถ้ามี label ให้ไปทางฝั่ง <a class="reflink" href="https://scikit-learn.org/stable/supervised_learning.html" target="_blank" rel="noopener">Supervised Learning</a> (การเรียนรู้แบบมีผู้สอน) ซึ่งแบ่งเป็น Classification (ทำนายหมวดหมู่) หรือ Regression (ทำนายตัวเลข) ถ้าไม่มี label ให้ไปทางฝั่ง <a class="reflink" href="https://scikit-learn.org/stable/unsupervised_learning.html" target="_blank" rel="noopener">Unsupervised Learning</a> (การเรียนรู้แบบไม่มีผู้สอน) เช่น Clustering (การจัดกลุ่มข้อมูล)</span></div></div>
+      <div class="flow-step"><span class="fnum">3</span><div class="ftext"><b>ถ้ามี label แล้ว ต้องการทำนายอะไร</b><span>ถ้าต้องการทำนาย "หมวดหมู่" เช่น สแปมหรือไม่สแปม → เป็นโจทย์ Classification ถ้าต้องการทำนาย "ค่าตัวเลข" เช่น ราคาบ้าน → เป็นโจทย์ Regression</span></div></div>
+      <div class="flow-step"><span class="fnum">4</span><div class="ftext"><b>ข้อมูลมีจำนวนมากแค่ไหน</b><span>ถ้าข้อมูลน้อยกว่าประมาณ 100,000 แถว มักแนะนำให้เริ่มจากโมเดลอย่าง Linear SVC (Support Vector Classifier แบบเชิงเส้น) แต่ถ้าข้อมูลเยอะมากกว่านั้น มักแนะนำโมเดลกลุ่ม SGD (Stochastic Gradient Descent) เพราะประมวลผลได้เร็วกว่าเมื่อข้อมูลมีขนาดใหญ่</span></div></div>
+    </div>
+
+    <div class="callout eg">
+      <span class="tag">ตัวอย่างการไล่ตามแผนภาพ</span>
+      <p>สมมติเรามีข้อมูลลูกค้า 5,000 คน มี label ว่าลูกค้าแต่ละคนจะเลิกใช้บริการหรือไม่ (churn หรือไม่ churn) — นี่คือโจทย์ Classification เพราะทำนายหมวดหมู่ และมีข้อมูลน้อยกว่า 100,000 แถว แผนภาพจะแนะนำให้เริ่มลอง Linear SVC ก่อน ถ้าผลไม่ดี ให้ตามลูกศร "Try next" ไปลอง KNeighbors Classifier ถ้ายังไม่ดีอีก ค่อยไปลอง SVC (แบบไม่เชิงเส้น) หรือ Ensemble Classifiers (โมเดลที่รวมหลายโมเดลย่อยเข้าด้วยกัน เช่น Random Forest) ต่อไปเรื่อยๆ</p>
+    </div>
+
+    <h3>แผนภาพฉบับเต็ม</h3>
+    <div class="map-wrap">
+      <img src="https://raw.githubusercontent.com/scikit-learn/scikit-learn/main/doc/images/ml_map.svg" alt="scikit-learn Choosing the right estimator flowchart" loading="lazy">
+      <div class="map-caption">Choosing the right estimator — scikit-learn</div>
+    </div>
+
+    <div class="callout">
+      <span class="tag">อ้างอิง</span>
+      <p>Choosing the right estimator — scikit-learn 1.9.0 documentation<br>
+      <a class="reflink" href="https://scikit-learn.org/stable/machine_learning_map.html" target="_blank" rel="noopener">scikit-learn.org/stable/machine_learning_map.html</a><br>
+      เปิดลิงก์นี้เพื่อดูเวอร์ชัน interactive ที่คลิกซูมได้ และคลิกที่ชื่อโมเดลแต่ละตัวเพื่อเปิดอ่าน documentation ได้ทันที</p>
+      <p>1. Supervised learning — scikit-learn 1.9.0 documentation<br>
+      <a class="reflink" href="https://scikit-learn.org/stable/supervised_learning.html" target="_blank" rel="noopener">scikit-learn.org/stable/supervised_learning.html</a></p>
+      <p>2. Unsupervised learning — scikit-learn 1.9.0 documentation<br>
+      <a class="reflink" href="https://scikit-learn.org/stable/unsupervised_learning.html" target="_blank" rel="noopener">scikit-learn.org/stable/unsupervised_learning.html</a></p>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 5: TRAIN/TEST VS CV ============ -->
+  <section id="s6">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Train/Test Split เทียบกับ Cross-Validation</h2></div>
+    <p class="sec-intro">หลังจากเทรนโมเดลเสร็จแล้ว เราต้องมีวิธี "วัดผล" ว่าโมเดลทำงานดีแค่ไหน โดยห้ามวัดผลจากข้อมูลชุดเดียวกับที่ใช้เทรน (เพราะโมเดลจะจำข้อมูลนั้นได้ ทำให้คะแนนดูดีเกินจริง) จึงต้องมีวิธีแบ่งข้อมูลสำหรับ "ทดสอบ" แยกออกมาต่างหาก ซึ่งมี 2 แนวทางหลักดังนี้</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title">Train/Test Split (การแบ่งชุดเทรน-ชุดทดสอบ)</div>
+        <p>คือการแบ่งข้อมูลออกเป็น 2 ก้อนแค่ครั้งเดียว เช่นแบ่ง 80% เป็นชุดเทรน (train set) และ 20% เป็นชุดทดสอบ (test set) โดยปกติจะสุ่มแบ่ง (random split) เทรนโมเดลด้วยชุดเทรน แล้ววัดผลด้วยชุดทดสอบเพียงรอบเดียว</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Cross-Validation หรือ CV (การตรวจสอบไขว้)</div>
+        <p>คือการแบ่งข้อมูลออกเป็น K ส่วนย่อยเท่าๆ กัน (เช่น K=5 หรือ K=10) แล้ววนทำการเทรน-ทดสอบทั้งหมด K รอบ แต่ละรอบจะใช้ส่วนที่ต่างกันเป็นชุดทดสอบ ส่วนที่เหลือเป็นชุดเทรน สุดท้ายนำผลคะแนนจากทุกรอบมาหาค่าเฉลี่ย</p>
+      </div>
+    </div>
+
+    <h3>เปรียบเทียบข้อดี-ข้อเสีย</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Train/Test Split</th><th>Cross-Validation</th></tr></thead>
+        <tbody>
+          <tr><td>ความเร็วในการคำนวณ</td><td>เร็วกว่า เพราะเทรนโมเดลแค่ครั้งเดียว</td><td>ช้ากว่า เพราะต้องเทรนโมเดลซ้ำ K ครั้ง</td></tr>
+          <tr><td>ความน่าเชื่อถือของคะแนน</td><td>ต่ำกว่า เพราะคะแนนขึ้นอยู่กับว่าสุ่มแบ่งได้ก้อนไหนมาเป็นชุดทดสอบ อาจได้คะแนนที่ดีหรือแย่โดยบังเอิญ</td><td>สูงกว่า เพราะเป็นค่าเฉลี่ยจากหลายรอบ ช่วยลดความผันผวน (variance) ของการวัดผล</td></tr>
+          <tr><td>เหมาะกับสถานการณ์ไหน</td><td>ข้อมูลมีขนาดใหญ่มาก (ระดับแสนหรือล้านแถวขึ้นไป) เช่นงาน deep learning หรือช่วง prototype (ทดลองแนวคิดเร็วๆ) ก่อนลงรายละเอียด</td><td>ข้อมูลมีขนาดน้อยถึงปานกลาง (งาน tabular data หรือข้อมูลตารางทั่วไปส่วนใหญ่) และตอนที่ต้องเปรียบเทียบหลายโมเดล หรือปรับจูน hyperparameter (ค่าที่ผู้ใช้กำหนดให้โมเดลก่อนเทรน เช่น ความลึกของต้นไม้ตัดสินใจ)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>ข้อควรรู้เรื่องคำศัพท์ K-Fold</h3>
+    <p>คนมักเข้าใจว่า Cross-Validation กับ K-Fold คือสิ่งเดียวกัน แต่จริงๆ แล้ว <b>K-Fold คือ Cross-Validation ชนิดหนึ่ง</b> (เป็นชนิดที่พบบ่อยที่สุด) ในขณะที่ Cross-Validation เป็นคำที่กว้างกว่า ยังมีชนิดย่อยอื่นอีก เช่น Stratified K-Fold (K-Fold ที่รักษาสัดส่วนของแต่ละหมวดหมู่ให้เท่ากันในทุกส่วน), Leave-One-Out (ใช้ข้อมูลแค่ 1 แถวเป็นชุดทดสอบในแต่ละรอบ), และ Time Series Split ที่จะอธิบายต่อไป</p>
+
+    <h3>กฎง่ายๆ ในการเลือกใช้แนวทางไหน</h3>
+    <ul class="checklist">
+      <li>ข้อมูลมีน้อยกว่า 10,000 แถว → ควรใช้ Cross-Validation แทบทุกครั้ง (K=5 หรือ K=10)</li>
+      <li>กำลังเปรียบเทียบหลายโมเดล หรือปรับจูน hyperparameter → ต้องใช้ Cross-Validation เพราะการวัดผลจาก Train/Test Split เพียงครั้งเดียวอาจทำให้เลือกโมเดลผิดจากความบังเอิญ</li>
+      <li>ข้อมูลมีขนาดใหญ่มาก และเป็นโมเดล deep learning ที่ใช้เวลาเทรนนานมาก → ใช้การแบ่งแบบ train/validation/test ครั้งเดียว เพราะไม่มีทรัพยากรพอจะทำ Cross-Validation หลายรอบ</li>
+      <li>สำหรับการใช้งานจริงในโปรดักชัน (production) → แนะนำให้มี 3 ชุดข้อมูลแยกกัน คือ train (สำหรับเทรน), validation (สำหรับปรับจูนระหว่างทาง อาจใช้ Cross-Validation ในขั้นนี้), และ test (เก็บไว้ใช้วัดผลครั้งสุดท้ายเท่านั้น ห้ามแตะต้องก่อนหน้านั้นเด็ดขาด เพื่อป้องกัน data leakage)</li>
+    </ul>
+
+    <div class="callout">
+      <span class="tag">ย้ำอีกครั้ง — ใช้ Pipeline เวลาทำ Cross-Validation</span>
+      <p>เช่นเดียวกับที่อธิบายไว้ในหัวข้อ 02 การทำ Cross-Validation ก็ต้องระวัง data leakage เหมือนกัน ถ้า preprocessing (เช่น <code>StandardScaler</code> หรือ imputer) ถูก fit จากข้อมูลทั้งหมดก่อนแบ่งเป็น K folds จะเกิดการรั่วไหลทันที เพราะแต่ละ fold จะแอบเห็นข้อมูลของ fold อื่นผ่านค่าที่คำนวณไว้ล่วงหน้า วิธีที่ถูกต้องคือห่อ preprocessing และโมเดลไว้ใน <code>sklearn.pipeline.Pipeline</code> เดียวกัน แล้วส่งทั้งก้อนเข้า <code>cross_val_score</code> หรือ <code>GridSearchCV</code> เพื่อให้ scikit-learn คำนวณ preprocessing ใหม่ทุกครั้งภายในแต่ละ fold โดยอัตโนมัติ</p>
+    </div>
+
+    <h3>กรณีพิเศษ — ข้อมูลอนุกรมเวลา (Time Series) ต้องระวังเป็นพิเศษ</h3>
+    <div class="callout warn">
+      <span class="tag">ห้ามใช้ K-Fold แบบสุ่มธรรมดากับข้อมูล Time Series</span>
+      <p>K-Fold แบบธรรมดาจะสุ่มแบ่งข้อมูลโดยไม่สนใจลำดับเวลา ทำให้บางรอบของการทดสอบ เอาข้อมูล "อนาคต" ไปใช้เทรนโมเดล แล้วให้โมเดลทำนาย "อดีต" ซึ่งเป็นสถานการณ์ที่เป็นไปไม่ได้ในโลกความจริง เพราะตอนใช้งานจริง เราจะไม่มีทางรู้ข้อมูลอนาคตล่วงหน้า ปัญหานี้เรียกว่า data leakage จากอนาคต (future data leakage) ผลลัพธ์ของโมเดลจะดูดีเกินจริงมากตอนทดสอบ แต่พอเอาไปใช้งานจริงกลับทำนายได้แย่กว่าที่คาดไว้มาก</p>
+    </div>
+    <p>ตัวอย่างที่ทำให้เห็นภาพ: สมมติเรามีข้อมูลราคาหุ้นทั้งปี ถ้าใช้ K-Fold สุ่มแบ่งข้อมูล อาจมีบางรอบที่เอาราคาหุ้นเดือนธันวาคมไปเทรนโมเดล แล้วให้โมเดลทำนายราคาหุ้นเดือนมกราคมของปีเดียวกัน ซึ่งในความเป็นจริงเราไม่มีทางรู้ราคาเดือนธันวาคมล่วงหน้าตั้งแต่เดือนมกราคม</p>
+    <p>ทางแก้ที่ถูกต้องคือใช้ <code>TimeSeriesSplit</code> ใน scikit-learn ซึ่งเป็นเทคนิคที่เรียกว่า "walk-forward validation" (การตรวจสอบแบบเดินหน้าไปทีละก้าว) หลักการคือ:</p>
+    <ol class="list">
+      <li>เทรนโมเดลด้วยข้อมูลช่วงต้น (เช่น เดือน 1-3)</li>
+      <li>ทดสอบด้วยข้อมูลช่วงถัดไปทันที (เช่น เดือน 4)</li>
+      <li>ขยายชุดเทรนให้รวมข้อมูลที่เพิ่งทดสอบไปด้วย (เช่น เดือน 1-4)</li>
+      <li>ทดสอบด้วยช่วงถัดไปอีก (เช่น เดือน 5) วนแบบนี้ไปเรื่อยๆ</li>
+    </ol>
+    <p>ด้วยวิธีนี้ ชุดเทรนจะเรียงตามเวลาอยู่ก่อนชุดทดสอบเสมอ ไม่มีการสุ่มเด็ดขาด ทำให้การประเมินผลสะท้อนสถานการณ์การใช้งานจริงได้ถูกต้อง</p>
+  </section>
+
+  <!-- ============ SECTION 6: EVALUATION ============ -->
+  <section id="s7">
+    <div class="sec-head"><span class="sec-num">07</span><h2>ประเมินผลและรู้ว่าเมื่อไหร่ควรลองโมเดลตัวถัดไป</h2></div>
+    <p class="sec-intro">หลังเทรนโมเดลตัวแรกเสร็จแล้ว จะรู้ได้ยังไงว่ามันทำงาน "ได้ผลดี" หรือ "ไม่ได้ผล" จนควรตามลูกศร "Try next" ไปลองตัวถัดไป หัวข้อนี้จะอธิบายสัญญาณและตัวชี้วัดที่ใช้ตัดสิน</p>
+
+    <h3>สัญญาณที่บอกว่าโมเดลมีปัญหา และควรทำอะไรต่อ</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>อาการที่พบ</th><th>ความหมายและสิ่งที่ควรทำ</th></tr></thead>
+        <tbody>
+          <tr><td>คะแนนต่ำทั้งในชุดเทรนและชุดทดสอบ</td><td>เรียกว่า <b>Underfitting</b> (โมเดลเรียนรู้ไม่พอ) หมายความว่าโมเดลไม่มีความสามารถเพียงพอจะจับ pattern ของข้อมูลได้ ทางแก้คือควรลองโมเดลที่มีความซับซ้อนมากขึ้น หรือเพิ่ม feature ที่มีประโยชน์เข้าไป</td></tr>
+          <tr><td>คะแนนในชุดเทรนสูงมาก แต่คะแนนในชุดทดสอบต่ำกว่ามาก</td><td>เรียกว่า <b>Overfitting</b> (โมเดลจำข้อมูลเทรนมากเกินไป จนไม่สามารถทำนายข้อมูลใหม่ได้ดี) ทางแก้แรกที่ควรลองก่อนคือปรับ regularization (เทคนิคที่ช่วงคุมไม่ให้โมเดลซับซ้อนเกินไป) หรือปรับ hyperparameter ให้เหมาะสม ยังไม่จำเป็นต้องเปลี่ยนไปใช้ algorithm ตัวอื่นทันที</td></tr>
+          <tr><td>เทรนโมเดลไม่ผ่าน มี error message ขึ้น</td><td>มักหมายความว่าข้อมูลไม่ตรงกับสมมติฐานของ algorithm นั้น (ตามที่อธิบายในหัวข้อ 03) เช่น มีค่า missing หลงเหลืออยู่ หรือมี feature ที่เป็นข้อความแต่โมเดลต้องการตัวเลขล้วน</td></tr>
+          <tr><td>ใช้เวลาเทรนนานเกินไปเมื่อเทียบกับขนาดข้อมูล</td><td>ควรพิจารณาย้ายไปใช้ algorithm ที่ scale (ขยายขนาด) ได้ดีกว่าเมื่อข้อมูลมีปริมาณมาก เช่น เปลี่ยนจาก SVC ไปใช้ SGDClassifier ซึ่งออกแบบมาให้ประมวลผลข้อมูลขนาดใหญ่ได้เร็วกว่า</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>ตัวชี้วัด (Metric) ที่ใช้วัดผลตามประเภทของงาน</h3>
+    <p>การจะบอกว่าคะแนน "ดี" หรือ "ไม่ดี" ต้องเลือกตัวชี้วัดให้ตรงกับประเภทของงานและสถานการณ์ก่อน ไม่มี metric ตัวไหนใช้ได้กับทุกกรณี</p>
+
+    <h4>งาน Classification (ทำนายหมวดหมู่)</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>เหมาะกับสถานการณ์ไหน</th></tr></thead>
+        <tbody>
+          <tr><td>Accuracy</td><td>สัดส่วนที่ทายถูกทั้งหมด เหมาะเฉพาะเมื่อข้อมูลแต่ละ class มีจำนวนใกล้เคียงกัน (balanced) ห้ามใช้ถ้าข้อมูลไม่สมดุล เพราะจะให้ค่าดูดีลวงตา (ตามที่อธิบายไว้ในหัวข้อ 01)</td></tr>
+          <tr><td>Precision</td><td>จากที่โมเดลทายว่า "ใช่" ทายถูกกี่เปอร์เซ็นต์ เหมาะกับงานที่ผลบวกลวง (false positive) มีต้นทุนสูง เช่น ระบบกรองสแปม ที่ไม่อยากให้อีเมลสำคัญถูกเข้าใจผิดว่าเป็นสแปม</td></tr>
+          <tr><td>Recall</td><td>จากของจริงที่เป็น "ใช่" ทั้งหมด จับได้กี่เปอร์เซ็นต์ เหมาะกับงานที่ผลลบลวง (false negative) มีต้นทุนสูง เช่น การตรวจจับโรคร้ายแรง ที่พลาดไม่จับได้อันตรายกว่าทายผิดเป็นบวก</td></tr>
+          <tr><td>F1-score</td><td>ค่าที่รวม precision กับ recall เข้าด้วยกัน เหมาะเมื่อต้องการสมดุลระหว่างสองค่านี้ และเหมาะเป็นพิเศษกับข้อมูลที่ไม่สมดุล (class imbalance)</td></tr>
+          <tr><td>ROC-AUC</td><td>Receiver Operating Characteristic - Area Under Curve คือค่าที่วัดความสามารถของโมเดลในการแยกแยะสองหมวดหมู่ออกจากกัน ยิ่งใกล้ 1 ยิ่งดี เหมาะกับข้อมูลที่ค่อนข้างสมดุล</td></tr>
+          <tr><td>PR-AUC</td><td>Precision-Recall AUC คือพื้นที่ใต้กราฟ precision-recall เหมาะกับข้อมูลไม่สมดุลมาก โดยเฉพาะเมื่อ class ที่สนใจ (positive class) เป็นกลุ่มส่วนน้อย สะท้อนความจริงได้ดีกว่า ROC-AUC ในกรณีนี้</td></tr>
+          <tr><td>Balanced Accuracy</td><td>accuracy ที่ปรับถ่วงน้ำหนักตามสัดส่วนของแต่ละ class เหมาะกับข้อมูลไม่สมดุลเช่นกัน อ่านและอธิบายให้คนอื่นเข้าใจง่ายกว่า F1/PR-AUC</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>งาน Regression (ทำนายค่าตัวเลข)</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>เหมาะกับสถานการณ์ไหน</th></tr></thead>
+        <tbody>
+          <tr><td>MAE<br><span style="font-size:12px;color:var(--text-faint)">(Mean Absolute Error)</span></td><td>ค่าเฉลี่ยของความคลาดเคลื่อนแบบค่าสัมบูรณ์ ไม่ยกกำลัง เหมาะเมื่อไม่ต้องการให้ outlier มีผลกระทบต่อค่า error มากเกินไป เพราะทนทานต่อ outlier (robust) มากกว่า RMSE</td></tr>
+          <tr><td>RMSE / MSE<br><span style="font-size:12px;color:var(--text-faint)">(Root Mean Squared Error / Mean Squared Error)</span></td><td>ค่าเฉลี่ยของความคลาดเคลื่อนยกกำลังสอง (MSE) หรือรากที่สองของมัน (RMSE ทำให้หน่วยกลับมาเหมือนข้อมูลจริง อ่านง่ายกว่า) เหมาะเมื่อต้องการทำโทษ (penalize) ค่าความผิดพลาดที่สูงมากๆ เป็นพิเศษ เหมาะกับงานที่ error ก้อนใหญ่อันตรายกว่ามาก เช่น การพยากรณ์ความต้องการไฟฟ้า</td></tr>
+          <tr><td>R²<br><span style="font-size:12px;color:var(--text-faint)">(R-squared)</span></td><td>สัดส่วนความแปรปรวนของ target ที่โมเดลอธิบายได้ ยิ่งใกล้ 1 ยิ่งดี เหมาะใช้เป็นภาพรวมคร่าวๆ ว่าโมเดลอธิบายข้อมูลได้ดีแค่ไหน เทียบกันระหว่างโมเดลได้ง่าย</td></tr>
+          <tr><td>MAPE<br><span style="font-size:12px;color:var(--text-faint)">(Mean Absolute Percentage Error)</span></td><td>ค่าเฉลี่ยความคลาดเคลื่อนในรูปเปอร์เซ็นต์ เหมาะเมื่อต้องการอธิบายผลลัพธ์ให้ผู้บริหารหรือฝั่งธุรกิจเข้าใจง่าย เช่น "ทายผิดพลาดเฉลี่ย 5%" ควรระวังกรณีค่าจริงใกล้ 0 เพราะจะทำให้เปอร์เซ็นต์ error พุ่งสูงผิดปกติ</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>งาน Clustering (จัดกลุ่มข้อมูลที่ไม่มี label)</h4>
+    <p>งาน clustering ไม่มีคำตอบที่ถูกต้องให้เทียบเหมือนงานอื่น จึงต้องใช้ตัวชี้วัดที่ประเมินจากโครงสร้างของข้อมูลเองเป็นหลัก</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>เหมาะกับสถานการณ์ไหน</th></tr></thead>
+        <tbody>
+          <tr><td>Silhouette Score</td><td>วัดว่าแต่ละจุดข้อมูลอยู่ใกล้กลุ่มของตัวเองและห่างจากกลุ่มอื่นแค่ไหน ค่าอยู่ระหว่าง -1 ถึง 1 ยิ่งใกล้ 1 ยิ่งดี เหมาะเป็นตัวเลือกแรกเมื่อไม่รู้จำนวน cluster ที่แท้จริง ใช้ช่วยหาจำนวน cluster ที่เหมาะสมได้ด้วย</td></tr>
+          <tr><td>Davies-Bouldin Index</td><td>วัดความคล้ายกันเฉลี่ยระหว่างแต่ละ cluster กับ cluster ที่ใกล้เคียงที่สุด ยิ่งค่าน้อยยิ่งดี (ต่างจาก metric อื่นในตารางนี้ที่ยิ่งมากยิ่งดี) เหมาะเมื่อต้องการเปรียบเทียบหลายค่า K อย่างรวดเร็ว</td></tr>
+          <tr><td>Calinski-Harabasz Index</td><td>วัดอัตราส่วนระหว่างความกระจายตัวระหว่างกลุ่มกับความกระจายตัวภายในกลุ่ม ยิ่งค่ามากยิ่งดี คำนวณเร็วกว่า silhouette มาก เหมาะกับข้อมูลขนาดใหญ่</td></tr>
+          <tr><td>Adjusted Rand Index<br><span style="font-size:12px;color:var(--text-faint)">(ARI)</span></td><td>ใช้ได้เฉพาะกรณีที่มี "คำตอบจริง" (ground truth labels) ให้เทียบเท่านั้น เช่นตอนทดสอบ algorithm กับข้อมูลจำลองที่รู้คำตอบอยู่แล้ว วัดว่าผลการจัดกลุ่มตรงกับคำตอบจริงแค่ไหน</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>เทคนิคที่แนะนำในการเช็คผล</h3>
+    <div class="callout">
+      <span class="tag">อย่าเชื่อคะแนนจากการวัดครั้งเดียว</span>
+      <p>อย่าเชื่อคะแนนที่ได้จาก Train/Test Split เพียงครั้งเดียว เพราะอาจเป็นความบังเอิญ ให้ใช้ Cross-Validation (เช่นคำสั่ง <code>cross_val_score</code> ในภาษา Python) เพื่อหาค่าเฉลี่ยที่น่าเชื่อถือกว่า จากนั้นเทียบค่าเฉลี่ยนั้นกับ baseline (เส้นฐานอ้างอิง) ง่ายๆ เช่น DummyClassifier (โมเดลจำลองที่ทายแบบไม่ใช้ความฉลาดใดๆ เลย เช่น ทายหมวดหมู่ที่พบบ่อยที่สุดเสมอ) ถ้าโมเดลของเรายังทำคะแนนได้ใกล้เคียงหรือแย่กว่า baseline นี้ นั่นคือสัญญาณที่ชัดเจนมากว่าควรตามลูกศร "Try next" ไปลองโมเดลตัวถัดไป</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="line"></div>
+  <p>สรุปจากบทสนทนาอ้างอิง scikit-learn 1.9.0 user guide · <a class="backtotop" href="#s1">กลับขึ้นบนสุด ↑</a></p>
+</footer>
+
+</body>
+</html>
